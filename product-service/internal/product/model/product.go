@@ -15,10 +15,10 @@ type Product struct {
 }
 
 type CreateProductRequest struct {
-	Name        string   `json:"name"`
-	Description *string  `json:"description,omitempty"`
-	Price       float64  `json:"price"`
-	Stock       int      `json:"stock"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Price       float64 `json:"price"`
+	Stock       int     `json:"stock"`
 }
 
 type UpdateProductRequest struct {
