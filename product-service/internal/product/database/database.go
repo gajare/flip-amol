@@ -3,31 +3,33 @@ package database
 import (
 	"context"
 	"fmt"
-	"time"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewPostgresPool(ctx context.Context, connString string) (*pgxpool.Pool, error) {
-	config, err := pgxpool.ParseConfig(connString)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse connection string: %w", err)
+func NewPostgresPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
+	if databaseURL == "" {
+		return nil, fmt.Errorf("DATABASE_URL is empty")
 	}
 
-	config.MaxConns = 10
-	config.MinConns = 2
-	config.MaxConnLifetime = time.Hour
-	config.MaxConnIdleTime = 30 * time.Minute
-
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, err := pgxpool.New(ctx, databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create connection pool: %w", err)
+		return nil, err
 	}
 
-	// Test connection
-	err = pool.Ping(ctx)
+	if err := pool.Ping(ctx); err != nil {
+		return nil, err
+	}
+
+	// run migration
+	sql, err := os.ReadFile("database.sql")
 	if err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, err
+	}
+
+	if _, err := pool.Exec(ctx, string(sql)); err != nil {
+		return nil, err
 	}
 
 	return pool, nil

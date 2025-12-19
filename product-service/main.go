@@ -2,25 +2,23 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"product-service/graph"
-	"product-service/internal/database"
+	"product-service/graph/generated"
+	"product-service/internal/product/database"
 	"product-service/internal/product/repository"
 	"product-service/internal/product/service"
 )
 
 const (
 	defaultPort = "8080"
-	defaultDB   = "postgres://admin:password@postgres:5432/productdb"
+	defaultDB = "postgres://admin:password@postgres:5432/productdb"
 )
 
 func main() {
@@ -34,7 +32,7 @@ func main() {
 		dbURL = defaultDB
 	}
 
-	// Initialize database connection
+	// ---------------- DB ----------------
 	ctx := context.Background()
 	dbPool, err := database.NewPostgresPool(ctx, dbURL)
 	if err != nil {
@@ -42,20 +40,26 @@ func main() {
 	}
 	defer dbPool.Close()
 
-	// Initialize repository and service
+	// ------------- Layers ---------------
 	productRepo := repository.NewProductRepository(dbPool)
 	productService := service.NewProductService(productRepo)
 
-	// Create GraphQL resolver
-	resolver := graph.NewResolver(productService)
+	// --------- GraphQL Resolver ----------
+	resolver := &graph.Resolver{
+		ProductService: productService,
+	}
 
-	// Configure GraphQL server
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
+	// -------- GraphQL Server -------------
+	srv := handler.NewDefaultServer(
+		generated.NewExecutableSchema(
+			generated.Config{Resolvers: resolver},
+		),
+	)
 
-	// Set up routes
+	// ------------ Routes ----------------
 	http.Handle("/", playground.Handler("GraphQL Playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("Connect to http://localhost:%s/ for GraphQL playground", port)
+	log.Printf("🚀 GraphQL running at http://localhost:%s/", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
