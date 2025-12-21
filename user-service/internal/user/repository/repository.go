@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
-	"user-serice/internal/user/model"
+	model "user-serice/internal/user/model_user"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"user-serice/internal/user/model"
+	model "user-serice/internal/user/model_user"
 	"user-serice/internal/user/repository"
 )
 
