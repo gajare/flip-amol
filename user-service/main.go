@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"os"
 	"user-serice/internal/user/database"
-
-	playgroud "github.com/99designs/gqlgen/graphql/playground"
 )
 
 const (
@@ -48,8 +46,8 @@ func main() {
 
 	// // ---------------------- Routes ----------------------
 
-	http.Handle("/", playgroud.Handler("GraphQL Playgorund", "/query"))
-	http.Handle("/query", nil)
+	// http.Handle("/", playgroud.Handler("GraphQL Playgorund", "/query"))
+	// http.Handle("/query", nil)
 
 	log.Printf("Server is running on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
